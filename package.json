@@ -10,6 +10,10 @@
     "Other"
   ],
   "activationEvents": [],
+  "authors": [
+    "Alexander Galichenko"
+  ],
+  "license": "MIT",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
