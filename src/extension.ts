@@ -15,14 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		if (vscode.window.activeTextEditor) {
 			const { text } = vscode.window.activeTextEditor.document.lineAt(vscode.window.activeTextEditor.selection.active.line);
-			if (vscode.workspace.workspaceFolders) {
-				let wf = vscode.workspace.workspaceFolders[0].uri.path ;
-				let f = vscode.workspace.workspaceFolders[0].uri.fsPath ; 
-			
-				const message = `YOUR-EXTENSION: folder: ${wf} - ${f}` ;
-			
-				// vscode.window.showInformationMessage(message);
-				
+			if (vscode.workspace.workspaceFolders) {				
 				const scenarioName = text.replace(/Scenario:|Scenario Outline:/, '').trim();
 				const command = `npm run qavajs -- --name "${scenarioName}" --format summary`
 				vscode.window.showInformationMessage(`Executing: ${command}`);
@@ -39,17 +32,6 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 			}
 
-
-			// exec(`echo '${text}'`, (error, stdout, stderr) => {
-			// 	if (error) {
-			// 		vscode.window.showInformationMessage(`exec error: ${error}`);
-			// 		console.error(`exec error: ${error}`);
-			// 		return;
-			// 	}
-			// 	vscode.window.showInformationMessage(stdout);
-			// 	console.log(`stdout: ${stdout}`);
-			// 	console.error(`stderr: ${stderr}`);
-			// });
 		}
 
 	});
