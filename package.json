@@ -32,7 +32,9 @@
       ]
     }
   },
+  "repository": "https://github.com/qavajs/vscode.git",
   "scripts": {
+    "vsce": "vsce package",
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
@@ -57,5 +59,8 @@
     "typescript": "^4.9.5",
     "webpack": "^5.76.3",
     "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "@vscode/vsce": "^2.18.0"
   }
 }
