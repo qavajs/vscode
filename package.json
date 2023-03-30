@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework support",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.76.0"
   },
