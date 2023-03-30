@@ -44,6 +44,18 @@
         "type": "array",
         "required": false,
         "default": []
+      },
+      "qavajs.templates": {
+        "markdownDescription": "glob path to templates files",
+        "type": "array",
+        "required": false,
+        "default": []
+      },
+      "qavajs.pageObjects": {
+        "markdownDescription": "glob path to page object files",
+        "type": "array",
+        "required": false,
+        "default": []
       }
     }
   },

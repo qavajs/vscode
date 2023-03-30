@@ -9,7 +9,9 @@ export async function getTemplates(): Promise<string[]> {
     if (vscode.workspace.workspaceFolders) {
         const cwd = vscode.workspace.workspaceFolders[0].uri.path;
         const templateFiles = await glob(templatesGlob ?? [], { cwd });
-        const fileContents: string[] = await Promise.all(templateFiles.map((file: string) => readFile(join(cwd, file), 'utf-8')));
+        const fileContents: string[] = await Promise.all(
+            templateFiles.map(async (file: string) => (await vscode.workspace.fs.readFile(vscode.Uri.file(join(cwd, file)))).toString())
+        );
         return fileContents
             .map((file: string) => {
                 const matches = file.match(/Scenario: (.+)/g);

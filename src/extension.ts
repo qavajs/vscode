@@ -1,12 +1,8 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import templateDecoration from './templateDecoration';
-import templateAutocomplete from './templateAutocomplete';
 import poAutocomplete from './poAutocomplete';
 import executeCommand from './executeCommand';
 
-import { startEmbeddedServer } from '@cucumber/language-server/wasm'
+import { startEmbeddedServer } from './startEmbeddedServer'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 
 import { VscodeFiles } from './VscodeFiles'
@@ -17,8 +13,6 @@ let client: LanguageClient
 export async function activate(context: vscode.ExtensionContext) {
 	executeCommand(context);
 	poAutocomplete(context);
-	// templateAutocomplete(context);	
-	// templateDecoration(context);
 
 	const serverOptions: ServerOptions = async () =>
     startEmbeddedServer(
