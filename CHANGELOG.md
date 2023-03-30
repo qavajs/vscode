@@ -6,4 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Added tab stopper to template snippets
+
+## [0.0.2]
+
 - Initial release

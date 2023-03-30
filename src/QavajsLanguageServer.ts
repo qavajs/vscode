@@ -25,9 +25,16 @@ export default class QavajsLanguageServer extends CucumberLanguageServer {
         //@ts-ignore
         await super.reindex(settings);
         this.suggestions.push(
-            ...(await getTemplates()).map(s => ({ label: s, segments: [s], matched: true}))
-        ); 
-        this.suggestions = this.suggestions.map(s => ({...s, segments: s.segments.map((param, index) => Array.isArray(param) ? `\${${index}}` : param)}));                
+            ...(await getTemplates()).map(s => { 
+                let tagIndex = 0;
+                const segments = s.replace(/<.+?>/g, () => {
+                  tagIndex++;
+                  return `||\${${tagIndex}}||`;
+                });
+                return { label: s, segments: segments.split('||'), matched: true}
+            })
+        );
+        this.suggestions = this.suggestions.map(s => ({...s, segments: s.segments.map((param, index) => Array.isArray(param) ? `\${${index}}` : param)}));                        
         //@ts-ignore
         this.onReindexed(this.registry, this.expressions, this.suggestions);
         //@ts-ignore
