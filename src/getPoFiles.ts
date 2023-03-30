@@ -1,4 +1,3 @@
-import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { glob } from 'glob';
 import * as vscode from 'vscode';
@@ -11,7 +10,7 @@ export async function getPoFiles(): Promise<any[]> {
         const templateFiles = await glob(templatesGlob ?? [], { cwd });
         return Promise.all(templateFiles.map(async (file: string) => ({
             path: file,
-            content: await readFile(join(cwd, file), 'utf-8')
+            content: (await vscode.workspace.fs.readFile(vscode.Uri.file(join(cwd, file)))).toString()
         })));
     }
     return []

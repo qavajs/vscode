@@ -1,14 +1,11 @@
 # qavajs README
 
-This is the README for your extension "qavajs". After writing up a brief description, we recommend including the following sections.
+This is extension to enable support of qavajs framework.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Page Object Autocomplete
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
