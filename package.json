@@ -56,6 +56,12 @@
         "type": "array",
         "required": false,
         "default": []
+      },
+      "qavajs.memory": {
+        "markdownDescription": "glob path to memory files",
+        "type": "array",
+        "required": false,
+        "default": []
       }
     }
   },
