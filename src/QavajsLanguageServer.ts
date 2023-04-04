@@ -10,6 +10,7 @@ export default class QavajsLanguageServer extends CucumberLanguageServer {
     public expressionBuilderResult: any;
     public suggestions: { label: string; segments: SuggestionSegments; matched: boolean; }[] = [];
     async sendDiagnostics(textDocument: TextDocument): Promise<void> {
+        // disable cucumber undefined step diagnostics
         const diagnostics = getGherkinDiagnostics(
             textDocument.getText(),
             (this.expressionBuilderResult?.expressionLinks || []).map((l: any) => l.expression)
@@ -24,6 +25,7 @@ export default class QavajsLanguageServer extends CucumberLanguageServer {
     async reindex(settings?: any) {
         //@ts-ignore
         await super.reindex(settings);
+        // extend origininal step suggestions with templates
         this.suggestions.push(
             ...(await getTemplates()).map(s => { 
                 let tagIndex = 0;

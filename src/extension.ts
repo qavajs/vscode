@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import poAutocomplete from './poAutocomplete';
+import poAutocomplete from './qavaAutocomplete';
 import executeCommand from './executeCommand';
 
 import { startEmbeddedServer } from './startEmbeddedServer'
