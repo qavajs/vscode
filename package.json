@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework support",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -75,7 +75,8 @@
     "menus": {
       "editor/context": [
         {
-          "command": "qavajs.execute"
+          "command": "qavajs.execute",
+          "when": "resourceExtname == .feature"
         }
       ]
     },
