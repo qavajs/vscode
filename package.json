@@ -75,7 +75,8 @@
     "menus": {
       "editor/context": [
         {
-          "command": "qavajs.execute"
+          "command": "qavajs.execute",
+          "when": "resourceExtname == .feature"
         }
       ]
     },
