@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
 
 export default function executeCommand(context: vscode.ExtensionContext) {
     // The command has been defined in the package.json file
