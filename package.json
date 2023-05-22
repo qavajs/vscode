@@ -2,9 +2,9 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework support",
-  "version": "0.0.4",
+  "version": "0.0.5-rc1",
   "engines": {
-    "vscode": "^1.76.0"
+    "vscode": "^1.78.0"
   },
   "categories": [
     "Other"
@@ -110,18 +110,18 @@
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
-    "@types/vscode": "^1.76.0",
-    "@typescript-eslint/eslint-plugin": "^5.56.0",
-    "@typescript-eslint/parser": "^5.56.0",
-    "@vscode/test-electron": "^2.3.0",
-    "eslint": "^8.36.0",
-    "glob": "^9.3.2",
+    "@types/vscode": "^1.78.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.6",
+    "@typescript-eslint/parser": "^5.59.6",
+    "@vscode/test-electron": "^2.3.2",
+    "eslint": "^8.40.0",
+    "glob": "^10.2.5",
     "mocha": "^10.2.0",
     "ts-loader": "^9.4.2",
-    "typescript": "^4.9.5",
-    "webpack": "^5.76.3",
-    "webpack-cli": "^5.0.1",
-    "@vscode/vsce": "^2.18.0"
+    "typescript": "^5.0.4",
+    "webpack": "^5.83.1",
+    "webpack-cli": "^5.1.1",
+    "@vscode/vsce": "^2.19.0"
   },
   "dependencies": {
     "@cucumber/language-server": "^1.4.0",
