@@ -4,6 +4,10 @@ All notable changes to the "qavajs" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.5]
+
+- Added capability to return whole hierarchy of page objects
+
 ## [0.0.4]
 
 - Added capability to run one scenario via context menu

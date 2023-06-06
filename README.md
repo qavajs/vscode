@@ -16,8 +16,8 @@ This extension contributes the following settings:
 * `cucumber.features`: gherkin files paths (array)
 * `cucumber.glue`: step definition file paths (array)
 * `qavajs.templates`: templates files paths (array)
-* `qavajs.pageObjects`: page object files paths (array)
-* `qavajs.memory`: memory files paths (array)
+* `qavajs.pageObject`: page object file paths (string)
+* `qavajs.memory`: memory file paths (string)
 * `qavajs.launchCommand`: qavajs launch command (default: `npx qavajs run`) (string)
 
 ## Known Issues
