@@ -2,9 +2,13 @@ import * as vscode from 'vscode';
 import { join } from 'path';
 enum FileType { TS, MJS, CJS };
 
-function getTSNodePath() {
+function normalize(filePath: string) {
+	return filePath.replace(/\\/g, '\\\\');
+}
+
+function getTSNodePath(): string | undefined {
 	if (vscode.workspace.workspaceFolders) {
-		const cwd = vscode.workspace.workspaceFolders[0].uri.path;
+		const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
 		return join(cwd, 'node_modules', 'ts-node')
 	}
 }
@@ -18,9 +22,9 @@ async function getFileType(filePath: string) {
 
 export async function importFile(filePath: string) {
 	switch (await getFileType(filePath)) {
-		case FileType.CJS: return eval(`require('${filePath}');`);
-		case FileType.MJS: return eval(`import('${filePath}');`);
-		case FileType.TS: return eval(`(() => { require('${getTSNodePath()}').register({transpileOnly: true}); return require('${filePath}'); })()`);
+		case FileType.CJS: return eval(`require('${normalize(filePath)}');`);
+		case FileType.MJS: return eval(`import('${normalize(filePath)}');`);
+		case FileType.TS: return eval(`(() => { require('${normalize(getTSNodePath() as string)}').register({transpileOnly: true}); return require('${normalize(filePath)}'); })()`);
 		default: throw new Error('file is not supported');
 	}
 }

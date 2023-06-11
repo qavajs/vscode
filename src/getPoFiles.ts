@@ -21,7 +21,7 @@ export async function getPoFiles(): Promise<any[]> {
     const config = vscode.workspace.getConfiguration('qavajs');
     const poPath: string | undefined = config.get('pageObject');
     if (poPath && vscode.workspace.workspaceFolders) {
-        const cwd = vscode.workspace.workspaceFolders[0].uri.path;
+        const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
         const absolutePoPath = join(cwd, poPath);
         let po = await importFile(absolutePoPath);
         if (po.default) po = po.default;
