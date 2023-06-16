@@ -4,6 +4,10 @@ All notable changes to the "qavajs" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.1]
+
+- Moved configuration to appropriate section
+
 ## [0.5.0]
 
 - Added capability to return whole hierarchy of page objects
