@@ -1,5 +1,5 @@
 import { CucumberLanguageServer } from "@cucumber/language-server";
-import { getGherkinDiagnostics, SuggestionSegments, jsSearchIndex } from "@cucumber/language-service";
+import { getGherkinDiagnostics, SuggestionSegments, jsSearchIndex, getGherkinFormattingEdits } from "@cucumber/language-service";
 import { TextDocument } from "vscode";
 import { Diagnostic, Connection } from "vscode-languageserver";
 import { getTemplates } from "./getTemplates";
@@ -7,8 +7,26 @@ import { getTemplates } from "./getTemplates";
 //@ts-ignore
 export default class QavajsLanguageServer extends CucumberLanguageServer {
     public connection: any;
+    public documents: any;
     public expressionBuilderResult: any;
     public suggestions: { label: string; segments: SuggestionSegments; matched: boolean; }[] = [];
+
+    constructor(connection: any, documents: any, parserAdapter: any, makeFiles: any, onReindexed: any) {
+        super(connection, documents, parserAdapter, makeFiles, onReindexed);
+        connection.onInitialized(async () => {
+            // override onDocumentFormatting to suppress removing gherking comments
+            connection.onDocumentFormatting((params: any) => {
+                const doc = documents.get(params.textDocument.uri);
+                if (!doc) return [];
+                const gherkinSource = doc.getText().replace(/\#/g, '_HASH_');
+                const formattedText = getGherkinFormattingEdits(gherkinSource);
+                return formattedText.map((edit: any) => {
+                    edit.newText = edit.newText.replace(/_HASH_/g, '#');
+                    return edit
+                });
+            });
+        })
+    }
     async sendDiagnostics(textDocument: TextDocument): Promise<void> {
         // disable cucumber undefined step diagnostics
         const diagnostics = getGherkinDiagnostics(
