@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [0.5.3]
 
+- Addded logic go invalidate import cache for page objects
+  
+## [0.5.3]
+
 - Updated import code to use project tsconfig
   
 ## [0.5.2]
