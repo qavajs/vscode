@@ -4,6 +4,10 @@ All notable changes to the "qavajs" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.4]
+
+- Addded logic go invalidate import cache for page objects
+  
 ## [0.5.3]
 
 - Updated import code to use project tsconfig
