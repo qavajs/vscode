@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -15,20 +15,6 @@
   "license": "MIT",
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "qavajs.execute",
-        "title": "qavajs run"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "command": "qavajs.execute",
-          "when": "resourceExtname == .feature"
-        }
-      ]
-    },
     "languages": [
       {
         "id": "cucumber",

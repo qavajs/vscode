@@ -4,7 +4,7 @@ This is extension based on Cucumber official plugin and enables support of qavaj
 
 ## Features
 
-- Run single scenario
+- VSCode Test Explorer
 - Template Autocomplete
 - Constants Autocomplete
 - Page Object Autocomplete

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import poAutocomplete from './qavaAutocomplete';
-import executeCommand from './executeCommand';
+import testExplorer from './testExplorer';
 
 import { startEmbeddedServer } from './startEmbeddedServer'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
@@ -11,7 +11,7 @@ let client: LanguageClient
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-	executeCommand(context);
+  testExplorer(context);  
 	poAutocomplete(context);
 
 	const serverOptions: ServerOptions = async () =>
