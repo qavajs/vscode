@@ -124,7 +124,6 @@ export function parseFeature(text: string, events: {
             const [, testName] = test;
 			const range = new vscode.Range(new vscode.Position(lineNo, 0), new vscode.Position(lineNo, test[0].length));
 			events.onTest(range, testName);
-			continue;
 		}
 	}
 };
