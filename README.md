@@ -8,6 +8,7 @@ This is extension based on Cucumber official plugin and enables support of qavaj
 - Template Autocomplete
 - Constants Autocomplete
 - Page Object Autocomplete
+- Page Object Explorer
 
 ## Extension Settings
 
@@ -20,6 +21,44 @@ This extension contributes the following settings:
 * `qavajs.memory`: memory root file path (string)
 * `qavajs.launchCommand`: qavajs launch command (default: `npx qavajs run`) (string)
 
+```json
+{  
+    "files.associations": {
+        "*.feature": "cucumber"
+    },
+    "cucumber.features": [
+        "features/**/*.feature"
+    ],
+    "cucumber.glue": [
+        "node_modules/@qavajs/**/src/*.ts",
+        "step_definition/*.ts"
+    ],
+    "qavajs.templates": [
+        "templates/*.feature"
+    ],
+    "qavajs.pageObject": "page_object/index.ts",
+    "qavajs.memory": "memory/index.ts",
+}
+```
+
+## How To Use
+
+### Test Explorer
+![](resources/test_explorer.png)
+
+### Page Object Explorer
+Click copy icon to copy qavajs path
+![](resources/po_explorer.png)
+
+### Page Object Autocomplete
+Type ?
+![](resources/po_autocomplete.png)
+
+### Constants Autocomplete
+Type $
+![](resources/memory_autocomplete.png)
+
 ## Known Issues and Limitation
 
 * typescript projects require installed `ts-node`
+* @qavajs/cli > 0.34.2
