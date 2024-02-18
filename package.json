@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -17,15 +17,48 @@
   "contributes": {
     "commands": [
       {
-        "command": "qavajs.execute",
-        "title": "qavajs run"
+        "command": "pageObject.refresh",
+        "title": "Refresh",
+        "icon": "$(timeline-refresh)"
+      },
+      {
+        "command": "pageObject.copy",
+        "title": "Copy Path",
+        "icon": "$(explorer-view-icon)"
       }
     ],
-    "menus": {
-      "editor/context": [
+    "viewsContainers": {
+      "activitybar": [
         {
-          "command": "qavajs.execute",
-          "when": "resourceExtname == .feature"
+          "id": "page-object",
+          "title": "qavajs",
+          "icon": "$(symbol-class)"
+        }
+      ]
+    },
+    "views": {
+      "page-object": [
+        {
+          "id": "pageObject",
+          "name": "Page Object",
+          "icon": "$(symbol-class)",
+          "contextualTitle": "page objects"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "pageObject.refresh",
+          "when": "view == pageObject",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pageObject.copy",
+          "when": "view == pageObject",
+          "group": "inline"
         }
       ]
     },
@@ -95,6 +128,7 @@
   "repository": "https://github.com/qavajs/vscode.git",
   "scripts": {
     "vsce": "vsce package",
+    "prevsce": "npm run package",
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
@@ -107,19 +141,19 @@
     "copy-wasms": "mkdir -p dist && cp node_modules/@cucumber/language-service/dist/*.wasm dist"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.4",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.78.0",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "@vscode/test-electron": "^2.3.6",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "@vscode/test-electron": "^2.3.9",
     "@vscode/vsce": "^2.23.0",
-    "eslint": "^8.53.0",
+    "eslint": "^8.56.0",
     "glob": "^10.3.10",
-    "mocha": "^10.2.0",
+    "mocha": "^10.3.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
-    "webpack": "^5.89.0",
+    "webpack": "^5.90.2",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
