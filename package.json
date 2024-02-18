@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -12,6 +12,8 @@
   "authors": [
     "Alexander Galichenko"
   ],
+  "publisher": "qavajs",
+  "icon": "resources/icon.png",
   "license": "MIT",
   "main": "./dist/extension.js",
   "contributes": {
