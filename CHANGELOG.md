@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [0.6.0]
 
 - Addded test explorer support
+- Added page object tree view
   
 ## [0.5.4]
 

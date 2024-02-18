@@ -15,6 +15,53 @@
   "license": "MIT",
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "pageObject.refresh",
+        "title": "Refresh",
+        "icon": "$(timeline-refresh)"
+      },
+      {
+        "command": "pageObject.copy",
+        "title": "Copy Path",
+        "icon": "$(explorer-view-icon)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "page-object",
+          "title": "qavajs",
+          "icon": "$(symbol-class)"
+        }
+      ]
+    },
+    "views": {
+      "page-object": [
+        {
+          "id": "pageObject",
+          "name": "Page Object",
+          "icon": "$(symbol-class)",
+          "contextualTitle": "page objects"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "pageObject.refresh",
+          "when": "view == pageObject",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pageObject.copy",
+          "when": "view == pageObject",
+          "group": "inline"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "cucumber",
