@@ -1,6 +1,6 @@
-# qavajs README
+# qavajs VSCode extension
 
-This is extension based on Cucumber official plugin and enables support of qavajs framework features.
+This is an extension based on Cucumber official plugin and enables support of qavajs framework features.
 
 ## Features
 
@@ -47,7 +47,7 @@ This extension contributes the following settings:
 ![](resources/test_explorer.png)
 
 ### Page Object Explorer
-Click copy icon to copy qavajs path
+Click the copy icon to copy qavajs path
 ![](resources/po_explorer.png)
 
 ### Page Object Autocomplete
