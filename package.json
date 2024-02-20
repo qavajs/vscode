@@ -2,12 +2,12 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "engines": {
     "vscode": "^1.78.0"
   },
   "categories": [
-    "Other"
+    "Testing"
   ],
   "authors": [
     "Alexander Galichenko"
@@ -123,6 +123,12 @@
           "type": "string",
           "required": false,
           "default": "memory/index.js"
+        },
+        "qavajs.launchCommand": {
+          "markdownDescription": "command to run qavajs tests. \nDefault value: \"npx qavajs run\"",
+          "type": "string",
+          "required": false,
+          "default": "npx qavajs run"
         }
       }
     }
