@@ -2,6 +2,7 @@ import { TextDecoder } from 'util';
 import * as vscode from 'vscode';
 import { exec } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { platform } from 'node:os';
 const textDecoder = new TextDecoder('utf-8');
 
 export type TestData = TestFile | TestCase;
@@ -78,7 +79,7 @@ export class TestCase {
 	}
 
     get namePattern() {
-        const escapeExamples = this.testName.replace(/([()])/g, '\\$1').replace(/(<.+?>)/g, '.+?');
+        const escapeExamples = this.testName.replace(/[-[\]{}()*+?.,^]/g, '\\$&').replace(/(<.+?>)/g, '.+?');
         return `^${escapeExamples}$`;
     }
 
@@ -88,7 +89,9 @@ export class TestCase {
         const command = `${launchCommand} --paths "${this.testUri}" --name "${this.namePattern}" --format summary`;
         options.appendOutput(command);
         return new Promise(resolve => {
-            exec(command, { cwd: (vscode.workspace.workspaceFolders as any)[0].uri.fsPath}, (err, stdout, stderr) => {
+			const shell = platform() === 'win32' ? 'powershell.exe' : '/bin/sh';
+			const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
+            exec(command, { cwd, shell }, (err, stdout, stderr) => {
                 if (err) {
 					const message = /\(\d+ (failed|undefined)\)/.test(stdout) 
 						? stdout 

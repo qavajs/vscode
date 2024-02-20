@@ -38,6 +38,7 @@ This extension contributes the following settings:
     ],
     "qavajs.pageObject": "page_object/index.ts",
     "qavajs.memory": "memory/index.ts",
+    "qavajs.launchCommand": "npx qavajs run --config config.ts",
 }
 ```
 
