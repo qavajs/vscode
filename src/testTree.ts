@@ -78,37 +78,39 @@ export class TestCase {
 		return this.testName;
 	}
 
-    get namePattern() {
-        const escapeExamples = this.testName.replace(/[-[\]{}()*+?.,^]/g, '\\$&').replace(/(<.+?>)/g, '.+?');
-        return `^${escapeExamples}$`;
-    }
+	get namePattern() {
+		const escapeExamples = this.testName
+			.replace(/[-[\]{}()*+?.,^$]/g, '.')
+			.replace(/(<.+?>)/g, '.+?');
+		return `^${escapeExamples}$`;
+	}
 
 	async run(item: vscode.TestItem, options: vscode.TestRun): Promise<void> {
-        const config = vscode.workspace.getConfiguration('qavajs');
-        const launchCommand: string = config.get('launchCommand') ?? 'npx qavajs run';
-        const command = `${launchCommand} --paths "${this.testUri}" --name "${this.namePattern}" --format summary`;
-        options.appendOutput(command);
-        return new Promise(resolve => {
+		const config = vscode.workspace.getConfiguration('qavajs');
+		const launchCommand: string = config.get('launchCommand') ?? 'npx qavajs run';
+		const command = `${launchCommand} --paths "${this.testUri}" --name "${this.namePattern}" --format summary`;
+		options.appendOutput(command);
+		return new Promise(resolve => {
 			const shell = platform() === 'win32' ? 'powershell.exe' : '/bin/sh';
 			const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
-            exec(command, { cwd, shell }, (err, stdout, stderr) => {
-                if (err) {
-					const message = /\(\d+ (failed|undefined)\)/.test(stdout) 
-						? stdout 
+			exec(command, { cwd, shell }, (err, stdout, stderr) => {
+				if (err) {
+					const message = /\(\d+ (failed|undefined)\)/.test(stdout)
+						? stdout
 						: err.message;
 					options.failed(item, new vscode.TestMessage(message));
 					resolve();
 				}
 				options.appendOutput(stdout.replace(/\n/g, '\r\n'));
 				if (/scenarios? \(\d+ passed\)/.test(stdout)) {
-                    options.passed(item);
+					options.passed(item);
 				}
 				if (stdout.includes('0 scenarios')) {
-                    options.skipped(item);
-                } 
-                resolve();
-              });
-        })
+					options.skipped(item);
+				}
+				resolve();
+			});
+		})
 	}
 
 }
@@ -124,7 +126,7 @@ export function parseFeature(text: string, events: {
 		const line = lines[lineNo];
 		const test = testRe.exec(line);
 		if (test) {
-            const [, testName] = test;
+			const [, testName] = test;
 			const range = new vscode.Range(new vscode.Position(lineNo, 0), new vscode.Position(lineNo, test[0].length));
 			events.onTest(range, testName);
 		}

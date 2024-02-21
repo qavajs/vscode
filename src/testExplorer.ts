@@ -79,10 +79,10 @@ export default async function activate(context: vscode.ExtensionContext) {
 	};
 
 	controller.refreshHandler = async () => {
-		for (const [ id ] of controller.items) {
+		for (const [id] of controller.items) {
 			controller.items.delete(id);
 		};
-		await Promise.all(getWorkspaceTestPatterns().map(({ pattern }) => findInitialFiles(controller, pattern)));
+		await Promise.all(getWorkspaceTestPatterns().map(pattern => findInitialFiles(controller, pattern)));
 	};
 
 	controller.createRunProfile('Run Tests', vscode.TestRunProfileKind.Run, runHandler, true, undefined, true);
@@ -112,9 +112,7 @@ export default async function activate(context: vscode.ExtensionContext) {
 		data.updateFromContents(controller, e.getText(), file);
 	}
 
-    getWorkspaceTestPatterns().forEach(({ pattern }) => {
-        findInitialFiles(controller, pattern);
-    });
+	getWorkspaceTestPatterns().forEach(pattern => { findInitialFiles(controller, pattern) });
 
 	context.subscriptions.push(
 		vscode.workspace.onDidOpenTextDocument(updateNodeForDocument),
@@ -145,21 +143,13 @@ function gatherTestItems(collection: vscode.TestItemCollection) {
 }
 
 function getWorkspaceTestPatterns() {
-    const config = vscode.workspace.getConfiguration('cucumber');
-    const featureFiles: string[] | undefined = config.get('features');
+	const config = vscode.workspace.getConfiguration('cucumber');
+	const featureFiles: string[] | undefined = config.get('features');
 	if (!vscode.workspace.workspaceFolders || !featureFiles) {
 		return [];
 	}
 
-	return vscode.workspace.workspaceFolders.reduce((paths: any[], workspaceFolder) => {
-        return [
-            ...paths,
-            ...featureFiles.map(filePattern => ({
-                workspaceFolder,
-                pattern: new vscode.RelativePattern(workspaceFolder, filePattern),
-            }))
-        ]
-    }, [])
+	return featureFiles;
 }
 
 async function findInitialFiles(controller: vscode.TestController, pattern: vscode.GlobPattern) {
@@ -169,13 +159,14 @@ async function findInitialFiles(controller: vscode.TestController, pattern: vsco
 }
 
 function startWatchingWorkspace(controller: vscode.TestController, fileChangedEmitter: vscode.EventEmitter<vscode.Uri>) {
-	return getWorkspaceTestPatterns().map(({ workspaceFolder, pattern }) => {
+	return getWorkspaceTestPatterns().map(pattern => {
 		const watcher = vscode.workspace.createFileSystemWatcher(pattern);
 
 		watcher.onDidCreate(uri => {
 			getOrCreateFile(controller, uri);
 			fileChangedEmitter.fire(uri);
 		});
+
 		watcher.onDidChange(async uri => {
 			const { file, data } = getOrCreateFile(controller, uri);
 			if (data.didResolve) {
@@ -183,6 +174,7 @@ function startWatchingWorkspace(controller: vscode.TestController, fileChangedEm
 			}
 			fileChangedEmitter.fire(uri);
 		});
+
 		watcher.onDidDelete(uri => controller.items.delete(uri.toString()));
 
 		findInitialFiles(controller, pattern);

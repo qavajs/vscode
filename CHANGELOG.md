@@ -4,6 +4,12 @@ All notable changes to the "qavajs" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.6.3]
+
+- Fixed Windows initial test scan
+- Disabled page object explorer for non .feature files
+- Fixed regexp chars escaping
+
 ## [0.6.2]
 
 - Fixed Windows test execution
