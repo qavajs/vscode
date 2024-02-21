@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -44,7 +44,8 @@
           "id": "pageObject",
           "name": "Page Object",
           "icon": "$(symbol-class)",
-          "contextualTitle": "page objects"
+          "contextualTitle": "page objects",
+          "when": "resourceExtname == .feature"
         }
       ]
     },
