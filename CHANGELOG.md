@@ -6,7 +6,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [0.7.0]
 
-- Added feauture file cucumber icon
+- Added feature file cucumber icon
   
 ## [0.6.3]
 
