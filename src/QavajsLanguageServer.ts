@@ -1,8 +1,13 @@
 import { CucumberLanguageServer } from "@cucumber/language-server";
-import { getGherkinDiagnostics, SuggestionSegments, jsSearchIndex, getGherkinFormattingEdits } from "@cucumber/language-service";
+import { 
+    getGherkinDiagnostics,
+    SuggestionSegments,
+    jsSearchIndex,
+    getGherkinFormattingEdits,
+} from "@cucumber/language-service";
 import { TextDocument } from "vscode";
-import { Diagnostic, Connection } from "vscode-languageserver";
-import { getTemplates } from "./getTemplates";
+import { Diagnostic } from "vscode-languageserver";
+import { getTemplateCoordinates, getTemplateSuggestions } from "./getTemplates";
 
 //@ts-ignore
 export default class QavajsLanguageServer extends CucumberLanguageServer {
@@ -43,16 +48,14 @@ export default class QavajsLanguageServer extends CucumberLanguageServer {
     async reindex(settings?: any) {
         //@ts-ignore
         await super.reindex(settings);
+        // extend expression lists to add templates
+        this.expressionBuilderResult.expressionLinks.push(
+            ...(await getTemplateCoordinates(this.expressionBuilderResult.registry))
+        )
+        console.log(this.expressionBuilderResult.expressionLinks)
         // extend origininal step suggestions with templates
         this.suggestions.push(
-            ...(await getTemplates()).map(s => { 
-                let tagIndex = 0;
-                const segments = s.replace(/<.+?>/g, () => {
-                  tagIndex++;
-                  return `||\${${tagIndex}}||`;
-                });
-                return { label: s, segments: segments.split('||'), matched: true}
-            })
+            ...(await getTemplateSuggestions())
         );
         this.suggestions = this.suggestions.map(s => ({...s, segments: s.segments.map((param, index) => Array.isArray(param) ? `\${${index}}` : param)}));                        
         //@ts-ignore
