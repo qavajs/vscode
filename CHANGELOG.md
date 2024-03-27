@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [0.7.0]
 
 - Added feature file cucumber icon
+- Added capability to navigate to template definitions
   
 ## [0.6.3]
 

@@ -170,7 +170,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@cucumber/language-server": "^1.4.0",
+    "@cucumber/cucumber-expressions": "^17.1.0",
+    "@cucumber/language-server": "^1.5.0",
     "ts-node": "^10.9.2",
     "vscode-languageclient": "^9.0.1"
   }
