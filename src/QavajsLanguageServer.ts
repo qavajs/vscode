@@ -52,7 +52,6 @@ export default class QavajsLanguageServer extends CucumberLanguageServer {
         this.expressionBuilderResult.expressionLinks.push(
             ...(await getTemplateCoordinates(this.expressionBuilderResult.registry))
         )
-        console.log(this.expressionBuilderResult.expressionLinks)
         // extend origininal step suggestions with templates
         this.suggestions.push(
             ...(await getTemplateSuggestions())
