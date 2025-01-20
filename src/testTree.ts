@@ -93,24 +93,18 @@ export class TestCase {
 		return new Promise(resolve => {
 			const shell = platform() === 'win32' ? 'powershell.exe' : '/bin/sh';
 			const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
-			exec(command, { cwd, shell }, (err, stdout, stderr) => {
-				if (err) {
-					const message = /\(\d+ (failed|undefined)\)/.test(stdout)
-						? stdout
-						: err.message;
-					options.failed(item, new vscode.TestMessage(message));
-					resolve();
-				}
+			exec(command, { cwd, shell }, (err, stdout) => {
 				options.appendOutput(stdout.replace(/\n/g, '\r\n'));
-				if (/scenarios? \(\d+ passed\)/.test(stdout)) {
+				if (err) {
+					options.failed(item, new vscode.TestMessage(stdout));
+				} else if (/scenarios? \(\d+ passed\)/.test(stdout)) {
 					options.passed(item);
-				}
-				if (stdout.includes('0 scenarios')) {
+				} else if (stdout.includes('0 scenarios')) {
 					options.skipped(item);
 				}
 				resolve();
 			});
-		})
+		});
 	}
 
 }

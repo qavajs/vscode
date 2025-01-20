@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-import poAutocomplete from './qavaAutocomplete';
 import testExplorer from './testExplorer';
-import pageObjectTreeView from './pageObjectTreeView';
 
 import { startEmbeddedServer } from './startEmbeddedServer'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
@@ -13,8 +11,6 @@ let client: LanguageClient
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
   testExplorer(context);  
-	poAutocomplete(context);
-  pageObjectTreeView(context);
 
 	const serverOptions: ServerOptions = async () =>
     startEmbeddedServer(

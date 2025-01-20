@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -17,54 +17,6 @@
   "license": "MIT",
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "pageObject.refresh",
-        "title": "Refresh",
-        "icon": "$(timeline-refresh)"
-      },
-      {
-        "command": "pageObject.copy",
-        "title": "Copy Path",
-        "icon": "$(explorer-view-icon)"
-      }
-    ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "page-object",
-          "title": "qavajs",
-          "icon": "$(symbol-class)"
-        }
-      ]
-    },
-    "views": {
-      "page-object": [
-        {
-          "id": "pageObject",
-          "name": "Page Object",
-          "icon": "$(symbol-class)",
-          "contextualTitle": "page objects",
-          "when": "resourceExtname == .feature"
-        }
-      ]
-    },
-    "menus": {
-      "view/title": [
-        {
-          "command": "pageObject.refresh",
-          "when": "view == pageObject",
-          "group": "navigation"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "pageObject.copy",
-          "when": "view == pageObject",
-          "group": "inline"
-        }
-      ]
-    },
     "languages": [
       {
         "id": "cucumber",
@@ -109,26 +61,6 @@
           "required": false,
           "default": []
         },
-        "qavajs.templates": {
-          "markdownDescription": "glob path to qavajs template files. \nDefault value: \n```json \n{\n  \"qavajs.templates\": [\n    \"template/*.feature\",\n  ]\n}\n```",
-          "type": "array",
-          "required": false,
-          "default": [
-            "templates/*.feature"
-          ]
-        },
-        "qavajs.pageObject": {
-          "markdownDescription": "path to qavajs page object root. \nDefault value: \"page_object/index.js\"",
-          "type": "string",
-          "required": false,
-          "default": "page_object/index.js"
-        },
-        "qavajs.memory": {
-          "markdownDescription": "path to qavajs to memory root. \nDefault value: \"memory/index.js\"",
-          "type": "string",
-          "required": false,
-          "default": "memory/index.js"
-        },
         "qavajs.launchCommand": {
           "markdownDescription": "command to run qavajs tests. \nDefault value: \"npx qavajs run\"",
           "type": "string",
@@ -154,23 +86,23 @@
     "copy-wasms": "mkdir -p dist && cp node_modules/@cucumber/language-service/dist/*.wasm dist"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.14.7",
-    "@types/vscode": "^1.78.0",
-    "@typescript-eslint/eslint-plugin": "^7.13.1",
-    "@typescript-eslint/parser": "^7.13.1",
-    "@vscode/test-electron": "^2.4.0",
-    "@vscode/vsce": "^2.29.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.7",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.1",
     "eslint": "^8.57.0",
-    "glob": "^10.4.2",
-    "mocha": "^10.4.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.5.2",
-    "webpack": "^5.91.0",
+    "glob": "^11.0.1",
+    "mocha": "^11.0.1",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "webpack": "^5.97.1",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@cucumber/cucumber-expressions": "^17.1.0",
+    "@cucumber/cucumber-expressions": "^18.0.1",
     "@cucumber/language-server": "^1.6.0",
     "ts-node": "^10.9.2",
     "vscode-languageclient": "^9.0.1"
