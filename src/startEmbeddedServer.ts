@@ -8,14 +8,14 @@ import { TextDocument } from 'vscode-languageserver-textdocument'
 import QavajsLanguageServer from './QavajsLanguageServer'
 
 export interface Files {
-    exists(uri: string): Promise<boolean>
-    readFile(uri: string): Promise<string>
-    findUris(glob: string): Promise<readonly string[]>
-    relativePath(uri: string): string
-  }
-  
+  exists(uri: string): Promise<boolean>
+  readFile(uri: string): Promise<string>
+  findUris(glob: string): Promise<readonly string[]>
+  relativePath(uri: string): string
+}
+
 export function extname(uri: string): string {
-return uri.substring(uri.lastIndexOf('.'), uri.length) || ''
+  return uri.substring(uri.lastIndexOf('.'), uri.length) || ''
 }
 
 export type ServerInfo = {
@@ -40,7 +40,7 @@ export function startEmbeddedServer(
 
   const connection = createConnection(inputStream, outputStream)
   const documents = new TextDocuments(TextDocument)
-  const server = new QavajsLanguageServer(connection, documents, adapter, makeFiles, onReindexed)
+  const server = new QavajsLanguageServer(connection, documents, adapter, makeFiles, onReindexed);
   connection.listen()
 
   return {

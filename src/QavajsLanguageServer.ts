@@ -2,8 +2,6 @@ import { CucumberLanguageServer } from "@cucumber/language-server";
 import { 
     getGherkinDiagnostics,
     SuggestionSegments,
-    jsSearchIndex,
-    getGherkinFormattingEdits,
 } from "@cucumber/language-service";
 import { TextDocument } from "vscode";
 import { Diagnostic } from "vscode-languageserver";

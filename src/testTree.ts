@@ -60,7 +60,6 @@ export class TestFile {
 				tcase.range = range;
 				parent.children.push(tcase);
 			}
-
 		});
 
 		ascend(0); // finish and assign children for all remaining items
