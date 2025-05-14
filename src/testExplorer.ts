@@ -16,7 +16,7 @@ export default async function activate(context: vscode.ExtensionContext) {
 		let profile: vscode.TestRunProfile | undefined;
 		for (const [item, thisProfile] of watchingTests) {
 			const cast = item as vscode.TestItem;
-			if (cast.uri?.toString() == uri.toString()) {
+			if (cast.uri?.toString() === uri.toString()) {
 				include.push(cast);
 				profile = thisProfile;
 			}
