@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -103,6 +103,7 @@
   },
   "dependencies": {
     "@cucumber/cucumber-expressions": "^18.0.1",
+    "@cucumber/gherkin": "^31.0.0",
     "@cucumber/language-server": "^1.6.0",
     "ts-node": "^10.9.2",
     "vscode-languageclient": "^9.0.1"
