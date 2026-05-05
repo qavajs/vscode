@@ -176,13 +176,13 @@ export class TestCase {
 
       child.on('close', (code) => {
         if (code !== 0) {
-          options.failed(item, new vscode.TestMessage(stdout));
+          options.failed(item, new vscode.TestMessage(stdout.split('Failures:')[1]?.trim() ?? stdout));
         } else if (/scenarios? \(\d+ passed\)/.test(stdout)) {
           options.passed(item);
         } else if (stdout.includes('0 scenarios')) {
           options.skipped(item);
         } else {
-          options.failed(item, new vscode.TestMessage(stdout));
+          options.failed(item, new vscode.TestMessage(stdout.split('Failures:')[1]?.trim() ?? stdout));
         }
         resolve();
       });
