@@ -1,7 +1,6 @@
 import { TextDecoder } from 'util';
 import * as vscode from 'vscode';
 import { spawn } from 'node:child_process';
-import { platform } from 'node:os';
 import { Parser, AstBuilder, GherkinClassicTokenMatcher } from '@cucumber/gherkin';
 import type { FeatureChild } from '@cucumber/messages';
 
@@ -144,7 +143,7 @@ function runCucumber(
 ): Promise<void> {
   options.appendOutput(`${command}\r\n`);
   return new Promise(resolve => {
-    const shell = platform() === 'win32' ? 'powershell.exe' : '/bin/sh';
+    const shell = vscode.env.shell;
     const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
     const proc = spawn(command, { cwd, shell, stdio: ['ignore', 'pipe', 'pipe'] });
 
