@@ -10,9 +10,9 @@ let client: LanguageClient
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-  testExplorer(context);  
+  testExplorer(context);
 
-	const serverOptions: ServerOptions = async () =>
+  const serverOptions: ServerOptions = async () =>
     startEmbeddedServer(
       __dirname,
       () => new VscodeFiles(vscode.workspace.fs),
@@ -37,5 +37,5 @@ export async function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export async function deactivate() {
-	await client.stop()
+  await client.stop()
 }
