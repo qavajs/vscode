@@ -19,9 +19,5 @@ jobs:
       - run: npm ci
       - run: npm run copy-wasms
       - run: npm run vsce
-      - name: release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./qavajs-*.vsix
       - name: publish to marketplace
         run: npx @vscode/vsce publish --pat ${{ secrets.VSCE_PAT }}
