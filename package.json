@@ -4,7 +4,7 @@
   "description": "qavajs test automation framework vscode extension",
   "version": "0.10.1",
   "engines": {
-    "vscode": "^1.78.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Testing"
