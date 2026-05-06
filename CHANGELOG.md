@@ -4,6 +4,9 @@ All notable changes to the "qavajs" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.10.1]
+- Fixed launch lag on Windows by using VS Code's configured terminal shell instead of hardcoded `powershell.exe`
+
 ## [0.10.0]
 
 - Added feature-level and suite-level test execution (whole feature runs as a single process instead of one process per scenario)
