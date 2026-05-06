@@ -7,7 +7,7 @@ import type { FeatureChild } from '@cucumber/messages';
 
 const textDecoder = new TextDecoder('utf-8');
 
-export type TestData = TestFile | TestCase;
+export type TestData = TestFile | TestFeature | TestCase;
 
 export const testData = new WeakMap<vscode.TestItem, TestData>();
 
@@ -62,6 +62,7 @@ export class TestFile {
     const featureItem = controller.createTestItem(`${item.uri}/feature`, feature.name || 'Feature', item.uri);
     featureItem.range = new vscode.Range(featureLine, 0, featureLine, 0);
     featureItem.children.replace(buildScenarioItems(controller, feature.children, item, thisGeneration));
+    testData.set(featureItem, new TestFeature(item.uri!.fsPath, thisGeneration));
     item.children.replace([featureItem]);
   }
 }
@@ -136,6 +137,150 @@ function createLeafItem(
   return item;
 }
 
+function runCucumber(
+  command: string,
+  options: vscode.TestRun,
+  resolveItem: (line: number) => vscode.TestItem | undefined
+): Promise<void> {
+  options.appendOutput(`${command}\r\n`);
+  return new Promise(resolve => {
+    const shell = platform() === 'win32' ? 'powershell.exe' : '/bin/sh';
+    const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
+    const proc = spawn(command, { cwd, shell, stdio: ['ignore', 'pipe', 'pipe'] });
+
+    const astNodeLines = new Map<string, number>();
+    const pickleLines = new Map<string, number>();
+    const testCasePickles = new Map<string, string>();
+    const startedCases = new Map<string, string>();
+    const caseStepResults = new Map<string, { status: string; message?: string }[]>();
+
+    let buffer = '';
+
+    const processEnvelope = (raw: string) => {
+      if (!raw.trim()) return;
+      let envelope: any;
+      try { envelope = JSON.parse(raw); } catch { return; }
+
+      if (envelope.gherkinDocument?.feature) {
+        const walk = (children: any[]) => {
+          for (const child of children ?? []) {
+            if (child.scenario) {
+              astNodeLines.set(child.scenario.id, child.scenario.location.line);
+              for (const ex of child.scenario.examples ?? []) {
+                for (const row of ex.tableBody ?? []) {
+                  astNodeLines.set(row.id, row.location.line);
+                }
+              }
+            }
+            if (child.rule) walk(child.rule.children ?? []);
+          }
+        };
+        walk(envelope.gherkinDocument.feature.children ?? []);
+      }
+
+      if (envelope.pickle) {
+        const { id, astNodeIds } = envelope.pickle;
+        // For outline rows the last astNodeId is the row; for plain scenarios it's the scenario node
+        for (let i = astNodeIds.length - 1; i >= 0; i--) {
+          const line = astNodeLines.get(astNodeIds[i]);
+          if (line !== undefined) { pickleLines.set(id, line); break; }
+        }
+      }
+
+      if (envelope.testCase) {
+        testCasePickles.set(envelope.testCase.id, envelope.testCase.pickleId);
+      }
+
+      if (envelope.testCaseStarted) {
+        const { id, testCaseId } = envelope.testCaseStarted;
+        startedCases.set(id, testCaseId);
+        caseStepResults.set(id, []);
+        const line = pickleLines.get(testCasePickles.get(testCaseId) ?? '');
+        const item = line !== undefined ? resolveItem(line) : undefined;
+        if (item) options.started(item);
+      }
+
+      if (envelope.testStepFinished) {
+        const { testCaseStartedId, testStepResult } = envelope.testStepFinished;
+        caseStepResults.get(testCaseStartedId)?.push({
+          status: testStepResult.status,
+          message: testStepResult.message
+        });
+      }
+
+      if (envelope.testCaseFinished) {
+        const { testCaseStartedId } = envelope.testCaseFinished;
+        const pickleId = testCasePickles.get(startedCases.get(testCaseStartedId) ?? '');
+        const line = pickleLines.get(pickleId ?? '');
+        const item = line !== undefined ? resolveItem(line) : undefined;
+        if (item) {
+          const steps = caseStepResults.get(testCaseStartedId) ?? [];
+          const worst = worstStepStatus(steps.map(s => s.status));
+          if (worst === 'PASSED') {
+            options.passed(item);
+          } else if (worst === 'SKIPPED' || worst === 'PENDING') {
+            options.skipped(item);
+          } else {
+            const msg = steps.find(s => s.status === worst)?.message?.trim()
+              ?? `Scenario failed: ${worst}`;
+            options.failed(item, new vscode.TestMessage(msg));
+          }
+        }
+      }
+
+    };
+
+    proc.stdout!.on('data', (chunk: Buffer) => {
+      buffer += chunk.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      lines.forEach(processEnvelope);
+    });
+
+    proc.stderr!.on('data', (chunk: Buffer) => {
+      options.appendOutput(chunk.toString().replace(/\r?\n/g, '\r\n'));
+    });
+
+    proc.on('close', () => {
+      processEnvelope(buffer);
+      resolve();
+    });
+
+    options.token.onCancellationRequested(() => proc.kill());
+  });
+}
+
+function worstStepStatus(statuses: string[]): string {
+  for (const s of ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'PENDING', 'SKIPPED', 'PASSED']) {
+    if (statuses.includes(s)) return s;
+  }
+  return statuses[0] ?? 'UNKNOWN';
+}
+
+export class TestFeature {
+  constructor(
+    private readonly featureUri: string,
+    public generation: number
+  ) {}
+
+  async run(item: vscode.TestItem, options: vscode.TestRun): Promise<void> {
+    const config = vscode.workspace.getConfiguration('qavajs');
+    const launchCommand: string = config.get('launchCommand') ?? 'npx qavajs run';
+    const command = `${launchCommand} --paths "${this.featureUri}" --format message`;
+
+    const lineToItem = new Map<number, vscode.TestItem>();
+    const collectItems = (col: vscode.TestItemCollection) => {
+      col.forEach(child => {
+        if (child.range) lineToItem.set(child.range.start.line + 1, child);
+        collectItems(child.children);
+      });
+    };
+    collectItems(item.children);
+
+    return runCucumber(command, options, line => lineToItem.get(line));
+  }
+}
+
 export class TestCase {
   constructor(
     private readonly testName: string,
@@ -156,38 +301,7 @@ export class TestCase {
   async run(item: vscode.TestItem, options: vscode.TestRun): Promise<void> {
     const config = vscode.workspace.getConfiguration('qavajs');
     const launchCommand: string = config.get('launchCommand') ?? 'npx qavajs run';
-    const command = `${launchCommand} --paths "${this.testUri}" --name "${this.namePattern}" --format summary`;
-    options.appendOutput(`${command}\r\n`);
-    return new Promise(resolve => {
-      const shell = platform() === 'win32' ? 'powershell.exe' : '/bin/sh';
-      const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
-      const child = spawn(command, { cwd, shell, stdio: ['ignore', 'pipe', 'pipe'] });
-      let stdout = '';
-
-      child.stdout!.on('data', (chunk: Buffer) => {
-        const text = chunk.toString();
-        stdout += text;
-        options.appendOutput(text.replace(/\r?\n/g, '\r\n'));
-      });
-
-      child.stderr!.on('data', (chunk: Buffer) => {
-        options.appendOutput(chunk.toString().replace(/\r?\n/g, '\r\n'));
-      });
-
-      child.on('close', (code) => {
-        if (code !== 0) {
-          options.failed(item, new vscode.TestMessage(stdout));
-        } else if (/scenarios? \(\d+ passed\)/.test(stdout)) {
-          options.passed(item);
-        } else if (stdout.includes('0 scenarios')) {
-          options.skipped(item);
-        } else {
-          options.failed(item, new vscode.TestMessage(stdout));
-        }
-        resolve();
-      });
-
-      options.token.onCancellationRequested(() => child.kill());
-    });
+    const command = `${launchCommand} --paths "${this.testUri}" --name "${this.namePattern}" --format message`;
+    return runCucumber(command, options, () => item);
   }
 }

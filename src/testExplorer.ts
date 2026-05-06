@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { TestCase, testData, TestFile } from './testTree';
+import { TestCase, TestFeature, testData, TestFile } from './testTree';
 
 export default async function activate(context: vscode.ExtensionContext) {
   const controller = vscode.tests.createTestController('qavajs tests', 'qavajs tests');
@@ -42,8 +42,15 @@ export default async function activate(context: vscode.ExtensionContext) {
   };
 
   const startTestRun = (request: vscode.TestRunRequest) => {
-    const queue: { test: vscode.TestItem; data: TestCase }[] = [];
+    const queue: { test: vscode.TestItem; data: TestCase | TestFeature }[] = [];
     const run = controller.createTestRun(request);
+
+    const enqueueDescendants = (parent: vscode.TestItem) => {
+      parent.children.forEach(child => {
+        run.enqueued(child);
+        enqueueDescendants(child);
+      });
+    };
 
     const discoverTests = async (tests: Iterable<vscode.TestItem>) => {
       for (const test of tests) {
@@ -53,6 +60,10 @@ export default async function activate(context: vscode.ExtensionContext) {
         const data = testData.get(test);
         if (data instanceof TestCase) {
           run.enqueued(test);
+          queue.push({ test, data });
+        } else if (data instanceof TestFeature) {
+          run.enqueued(test);
+          enqueueDescendants(test);
           queue.push({ test, data });
         } else {
           if (data instanceof TestFile && !data.didResolve) {
