@@ -260,7 +260,7 @@ export class TestFeature {
   constructor(
     private readonly featureUri: string,
     public generation: number
-  ) {}
+  ) { }
 
   async run(item: vscode.TestItem, options: vscode.TestRun): Promise<void> {
     const config = vscode.workspace.getConfiguration('qavajs');

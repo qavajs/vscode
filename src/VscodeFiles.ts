@@ -2,7 +2,7 @@ import { Files } from '@cucumber/language-server'
 import { FileSystem, Uri, workspace } from 'vscode'
 
 export class VscodeFiles implements Files {
-  constructor(private readonly fs: FileSystem) {}
+  constructor(private readonly fs: FileSystem) { }
 
   async exists(uri: string): Promise<boolean> {
     try {
@@ -15,7 +15,6 @@ export class VscodeFiles implements Files {
 
   async readFile(uri: string): Promise<string> {
     const data = await this.fs.readFile(Uri.parse(uri));
-    //@ts-ignore
     return new TextDecoder().decode(data)
   }
 
