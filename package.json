@@ -66,6 +66,26 @@
           "type": "string",
           "required": false,
           "default": "npx qavajs run"
+        },
+        "qavajs.launchProfiles": {
+          "markdownDescription": "Named launch profiles for running tests. Each profile appears as a separate run profile in the Test Explorer. Example:\n\n```json\n{\n  \"qavajs.launchProfiles\": [\n    { \"name\": \"Dev\", \"command\": \"npx qavajs run --config dev.config.js\" },\n    { \"name\": \"CI\", \"command\": \"npx qavajs run --config ci.config.js\" }\n  ]\n}\n```\n\nWhen empty, falls back to `qavajs.launchCommand`.",
+          "type": "array",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "object",
+            "required": ["name", "command"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Profile name shown in the Test Explorer dropdown"
+              },
+              "command": {
+                "type": "string",
+                "description": "Command used to launch tests for this profile"
+              }
+            }
+          }
         }
       }
     }

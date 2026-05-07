@@ -262,10 +262,9 @@ export class TestFeature {
     public generation: number
   ) { }
 
-  async run(item: vscode.TestItem, options: vscode.TestRun): Promise<void> {
-    const config = vscode.workspace.getConfiguration('qavajs');
-    const launchCommand: string = config.get('launchCommand') ?? 'npx qavajs run';
-    const command = `${launchCommand} --paths "${this.featureUri}" --format message`;
+  async run(item: vscode.TestItem, options: vscode.TestRun, launchCommand?: string): Promise<void> {
+    const cmd = launchCommand ?? vscode.workspace.getConfiguration('qavajs').get<string>('launchCommand') ?? 'npx qavajs run';
+    const command = `${cmd} --paths "${this.featureUri}" --format message`;
 
     const lineToItem = new Map<number, vscode.TestItem>();
     const collectItems = (col: vscode.TestItemCollection) => {
@@ -297,10 +296,9 @@ export class TestCase {
       .replace(/<[^>]+>/g, '.+?')}$`;
   }
 
-  async run(item: vscode.TestItem, options: vscode.TestRun): Promise<void> {
-    const config = vscode.workspace.getConfiguration('qavajs');
-    const launchCommand: string = config.get('launchCommand') ?? 'npx qavajs run';
-    const command = `${launchCommand} --paths "${this.testUri}" --name "${this.namePattern}" --format message`;
+  async run(item: vscode.TestItem, options: vscode.TestRun, launchCommand?: string): Promise<void> {
+    const cmd = launchCommand ?? vscode.workspace.getConfiguration('qavajs').get<string>('launchCommand') ?? 'npx qavajs run';
+    const command = `${cmd} --paths "${this.testUri}" --name "${this.namePattern}" --format message`;
     return runCucumber(command, options, () => item);
   }
 }
