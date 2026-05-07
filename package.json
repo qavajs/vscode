@@ -2,7 +2,7 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "engines": {
     "vscode": "^1.100.0"
   },
