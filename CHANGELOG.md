@@ -4,6 +4,9 @@ All notable changes to the "qavajs" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.11.0]
+- Added `qavajs.launchProfiles` setting to define multiple named run profiles (e.g. Dev, CI) selectable from the Test Explorer dropdown
+
 ## [0.10.1]
 - Fixed launch lag on Windows by using VS Code's configured terminal shell instead of hardcoded `powershell.exe`
 

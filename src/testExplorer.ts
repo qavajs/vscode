@@ -27,9 +27,9 @@ export default async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const runHandler = (request: vscode.TestRunRequest, cancellation: vscode.CancellationToken) => {
+  const runHandler = (request: vscode.TestRunRequest, cancellation: vscode.CancellationToken, launchCommand?: string) => {
     if (!request.continuous) {
-      return startTestRun(request);
+      return startTestRun(request, launchCommand);
     }
 
     if (request.include === undefined) {
@@ -41,7 +41,7 @@ export default async function activate(context: vscode.ExtensionContext) {
     }
   };
 
-  const startTestRun = (request: vscode.TestRunRequest) => {
+  const startTestRun = (request: vscode.TestRunRequest, launchCommand?: string) => {
     const queue: { test: vscode.TestItem; data: TestCase | TestFeature }[] = [];
     const run = controller.createTestRun(request);
 
@@ -80,7 +80,7 @@ export default async function activate(context: vscode.ExtensionContext) {
           run.skipped(test);
         } else {
           run.started(test);
-          await data.run(test, run);
+          await data.run(test, run, launchCommand);
         }
       }
       run.end();
@@ -96,7 +96,35 @@ export default async function activate(context: vscode.ExtensionContext) {
     await Promise.all(getWorkspaceTestPatterns().map(pattern => findInitialFiles(controller, pattern)));
   };
 
-  controller.createRunProfile('Run Tests', vscode.TestRunProfileKind.Run, runHandler, true, undefined, true);
+  const createRunProfiles = (): vscode.Disposable[] => {
+    const profiles: { name: string; command: string }[] =
+      vscode.workspace.getConfiguration('qavajs').get('launchProfiles') ?? [];
+
+    if (profiles.length === 0) {
+      return [
+        controller.createRunProfile('Run Tests', vscode.TestRunProfileKind.Run,
+          (req, token) => runHandler(req, token), true, undefined, true)
+      ];
+    }
+
+    return profiles.map((profile, i) =>
+      controller.createRunProfile(profile.name, vscode.TestRunProfileKind.Run,
+        (req, token) => runHandler(req, token, profile.command), i === 0, undefined, i === 0)
+    );
+  };
+
+  let profileDisposables = createRunProfiles();
+  context.subscriptions.push(...profileDisposables);
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('qavajs.launchProfiles') || e.affectsConfiguration('qavajs.launchCommand')) {
+        profileDisposables.forEach(d => d.dispose());
+        profileDisposables = createRunProfiles();
+        context.subscriptions.push(...profileDisposables);
+      }
+    })
+  );
 
   controller.resolveHandler = async item => {
     if (!item) {
