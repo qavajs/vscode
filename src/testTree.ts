@@ -1,37 +1,26 @@
-import { TextDecoder } from 'util';
 import * as vscode from 'vscode';
-import { spawn } from 'node:child_process';
-import { Parser, AstBuilder, GherkinClassicTokenMatcher } from '@cucumber/gherkin';
-import type { FeatureChild } from '@cucumber/messages';
+import { type GherkinNode, type NodeKind, parseFeature } from './gherkin';
 
 const textDecoder = new TextDecoder('utf-8');
 
-export type TestData = TestFile | TestFeature | TestCase;
+export type TestData = TestFile | TestNode;
 
 export const testData = new WeakMap<vscode.TestItem, TestData>();
 
-let generationCounter = 0;
-let gherkinIdCounter = 0;
-
 export const getContentFromFilesystem = async (uri: vscode.Uri) => {
-  try {
-    const rawContent = await vscode.workspace.fs.readFile(uri);
-    return textDecoder.decode(rawContent);
-  } catch (e) {
-    console.warn(`Error providing tests for ${uri.fsPath}`, e);
-    return '';
-  }
+  const rawContent = await vscode.workspace.fs.readFile(uri);
+  return textDecoder.decode(rawContent);
 };
 
-function parseGherkinDocument(content: string) {
-  const matcher = new GherkinClassicTokenMatcher();
-  const parser = new Parser(new AstBuilder(() => String(gherkinIdCounter++)), matcher);
-  try {
-    return parser.parse(content);
-  } catch {
-    return null;
+const tagCache = new Map<string, vscode.TestTag>();
+const testTag = (name: string) => {
+  let tag = tagCache.get(name);
+  if (!tag) {
+    tag = new vscode.TestTag(name);
+    tagCache.set(name, tag);
   }
-}
+  return tag;
+};
 
 export class TestFile {
   public didResolve = false;
@@ -39,266 +28,87 @@ export class TestFile {
   public async updateFromDisk(controller: vscode.TestController, item: vscode.TestItem) {
     try {
       const content = await getContentFromFilesystem(item.uri!);
-      item.error = undefined;
       this.updateFromContents(controller, content, item);
     } catch (e) {
-      item.error = (e as Error).stack;
+      item.error = `Failed to read ${item.uri?.fsPath}: ${(e as Error).message}`;
     }
   }
 
   public updateFromContents(controller: vscode.TestController, content: string, item: vscode.TestItem) {
-    const thisGeneration = generationCounter++;
     this.didResolve = true;
 
-    const doc = parseGherkinDocument(content);
-    if (!doc?.feature) {
-      item.children.replace([]);
+    const result = parseFeature(content);
+    if (!result.ok) {
+      // keep previously discovered tests visible while the file is being edited
+      item.error = new vscode.MarkdownString().appendText(`Gherkin parse error: ${result.error}`);
       return;
     }
-
-    const { feature } = doc;
-    const featureLine = feature.location.line - 1;
-    const featureItem = controller.createTestItem(`${item.uri}/feature`, feature.name || 'Feature', item.uri);
-    featureItem.range = new vscode.Range(featureLine, 0, featureLine, 0);
-    featureItem.children.replace(buildScenarioItems(controller, feature.children, item, thisGeneration));
-    testData.set(featureItem, new TestFeature(item.uri!.fsPath, thisGeneration));
-    item.children.replace([featureItem]);
+    item.error = undefined;
+    item.children.replace(result.feature ? [createItem(controller, item.uri!, result.feature, `${item.uri}`, [])] : []);
   }
 }
 
-function buildScenarioItems(
-  controller: vscode.TestController,
-  children: readonly FeatureChild[],
-  fileItem: vscode.TestItem,
-  generation: number
-): vscode.TestItem[] {
-  const items: vscode.TestItem[] = [];
+/** A runnable node: feature, rule, scenario, outline or example row. */
+export class TestNode {
+  constructor(
+    public readonly kind: NodeKind,
+    public readonly line: number,
+    public readonly fsPath: string
+  ) { }
 
-  for (const child of children) {
-    if (child.rule) {
-      const { rule } = child;
-      const ruleLine = rule.location.line - 1;
-      const ruleItem = controller.createTestItem(`${fileItem.uri}/${ruleLine}`, rule.name || 'Rule', fileItem.uri);
-      ruleItem.range = new vscode.Range(ruleLine, 0, ruleLine, 0);
-      ruleItem.children.replace(buildScenarioItems(controller, rule.children, fileItem, generation));
-      items.push(ruleItem);
-      continue;
-    }
-
-    const { scenario } = child;
-    if (!scenario) continue;
-
-    const scenarioLine = scenario.location.line;
-
-    if (scenario.examples.length === 0) {
-      const scenarioItem = createLeafItem(controller, fileItem, `${fileItem.uri}/${scenarioLine}`, scenario.name, scenarioLine, generation);
-      items.push(scenarioItem);
-    } else {
-      // Scenario Outline: parent runs all rows; each child runs its own row
-      const outlineItem = createLeafItem(controller, fileItem, `${fileItem.uri}/${scenarioLine}`, scenario.name, scenarioLine, generation);
-
-      const exampleItems: vscode.TestItem[] = [];
-      for (const examples of scenario.examples) {
-        const headers = (examples.tableHeader?.cells ?? []).map(c => c.value);
-        for (const row of examples.tableBody) {
-          const interpolatedName = headers.reduce(
-            (name, header, i) => name.replace(`<${header}>`, row.cells[i]?.value ?? ''),
-            scenario.name
-          );
-          const exampleItem = createLeafItem(
-            controller, fileItem,
-            `${fileItem.uri}/${scenarioLine}/${row.location.line}`,
-            interpolatedName, row.location.line, generation
-          );
-          exampleItems.push(exampleItem);
-        }
+  /** `--paths` value selecting exactly the scenarios under this node. */
+  location(item: vscode.TestItem): string {
+    switch (this.kind) {
+      case 'feature':
+        return this.fsPath;
+      case 'rule': {
+        const lines = leafItems(item).map(leaf => (testData.get(leaf) as TestNode).line);
+        return lines.length ? `${this.fsPath}:${lines.join(':')}` : this.fsPath;
       }
-      outlineItem.children.replace(exampleItems);
-      items.push(outlineItem);
+      default:
+        return `${this.fsPath}:${this.line}`;
     }
   }
 
-  return items;
+  get isLeaf() {
+    return this.kind === 'scenario' || this.kind === 'example';
+  }
 }
 
-function createLeafItem(
+function createItem(
   controller: vscode.TestController,
-  fileItem: vscode.TestItem,
-  id: string,
-  name: string,
-  gherkinLine: number,
-  generation: number
+  uri: vscode.Uri,
+  node: GherkinNode,
+  parentId: string,
+  inheritedTags: readonly string[]
 ): vscode.TestItem {
-  const data = new TestCase(name, fileItem.uri?.fsPath as string, generation);
-  const item = controller.createTestItem(id, name, fileItem.uri);
-  testData.set(item, data);
-  item.range = new vscode.Range(gherkinLine - 1, 0, gherkinLine - 1, 0);
+  const id = node.kind === 'feature' ? `${parentId}/feature` : `${parentId}/${node.line}`;
+  const item = controller.createTestItem(id, node.name, uri);
+  item.range = new vscode.Range(node.line - 1, 0, node.line - 1, 0);
+  // effective tags (inherited from feature / rule / outline) so Test Explorer `@qavajs:tag` filters work
+  const tags = [...new Set([...inheritedTags, ...node.tags])];
+  item.tags = tags.map(testTag);
+  if (node.tags.length) {
+    item.description = node.tags.map(t => `@${t}`).join(' ');
+  }
+  testData.set(item, new TestNode(node.kind, node.line, uri.fsPath));
+  item.children.replace(node.children.map(child => createItem(controller, uri, child, id, tags)));
   return item;
 }
 
-function runCucumber(
-  command: string,
-  options: vscode.TestRun,
-  resolveItem: (line: number) => vscode.TestItem | undefined
-): Promise<void> {
-  options.appendOutput(`${command}\r\n`);
-  return new Promise(resolve => {
-    const shell = vscode.env.shell;
-    const cwd = (vscode.workspace.workspaceFolders as any)[0].uri.fsPath;
-    const proc = spawn(command, { cwd, shell, stdio: ['ignore', 'pipe', 'pipe'] });
-
-    const astNodeLines = new Map<string, number>();
-    const pickleLines = new Map<string, number>();
-    const testCasePickles = new Map<string, string>();
-    const startedCases = new Map<string, string>();
-    const caseStepResults = new Map<string, { status: string; message?: string }[]>();
-
-    let buffer = '';
-
-    const processEnvelope = (raw: string) => {
-      if (!raw.trim()) return;
-      let envelope: any;
-      try { envelope = JSON.parse(raw); } catch { return; }
-
-      if (envelope.gherkinDocument?.feature) {
-        const walk = (children: any[]) => {
-          for (const child of children ?? []) {
-            if (child.scenario) {
-              astNodeLines.set(child.scenario.id, child.scenario.location.line);
-              for (const ex of child.scenario.examples ?? []) {
-                for (const row of ex.tableBody ?? []) {
-                  astNodeLines.set(row.id, row.location.line);
-                }
-              }
-            }
-            if (child.rule) walk(child.rule.children ?? []);
-          }
-        };
-        walk(envelope.gherkinDocument.feature.children ?? []);
-      }
-
-      if (envelope.pickle) {
-        const { id, astNodeIds } = envelope.pickle;
-        // For outline rows the last astNodeId is the row; for plain scenarios it's the scenario node
-        for (let i = astNodeIds.length - 1; i >= 0; i--) {
-          const line = astNodeLines.get(astNodeIds[i]);
-          if (line !== undefined) { pickleLines.set(id, line); break; }
-        }
-      }
-
-      if (envelope.testCase) {
-        testCasePickles.set(envelope.testCase.id, envelope.testCase.pickleId);
-      }
-
-      if (envelope.testCaseStarted) {
-        const { id, testCaseId } = envelope.testCaseStarted;
-        startedCases.set(id, testCaseId);
-        caseStepResults.set(id, []);
-        const line = pickleLines.get(testCasePickles.get(testCaseId) ?? '');
-        const item = line !== undefined ? resolveItem(line) : undefined;
-        if (item) options.started(item);
-      }
-
-      if (envelope.testStepFinished) {
-        const { testCaseStartedId, testStepResult } = envelope.testStepFinished;
-        caseStepResults.get(testCaseStartedId)?.push({
-          status: testStepResult.status,
-          message: testStepResult.message
-        });
-      }
-
-      if (envelope.testCaseFinished) {
-        const { testCaseStartedId } = envelope.testCaseFinished;
-        const pickleId = testCasePickles.get(startedCases.get(testCaseStartedId) ?? '');
-        const line = pickleLines.get(pickleId ?? '');
-        const item = line !== undefined ? resolveItem(line) : undefined;
-        if (item) {
-          const steps = caseStepResults.get(testCaseStartedId) ?? [];
-          const worst = worstStepStatus(steps.map(s => s.status));
-          if (worst === 'PASSED') {
-            options.passed(item);
-          } else if (worst === 'SKIPPED' || worst === 'PENDING') {
-            options.skipped(item);
-          } else {
-            const msg = steps.find(s => s.status === worst)?.message?.trim()
-              ?? `Scenario failed: ${worst}`;
-            options.failed(item, new vscode.TestMessage(msg));
-          }
-        }
-      }
-
-    };
-
-    proc.stdout!.on('data', (chunk: Buffer) => {
-      buffer += chunk.toString();
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
-      lines.forEach(processEnvelope);
-    });
-
-    proc.stderr!.on('data', (chunk: Buffer) => {
-      options.appendOutput(chunk.toString().replace(/\r?\n/g, '\r\n'));
-    });
-
-    proc.on('close', () => {
-      processEnvelope(buffer);
-      resolve();
-    });
-
-    options.token.onCancellationRequested(() => proc.kill());
+export function gatherTestItems(collection: vscode.TestItemCollection): vscode.TestItem[] {
+  const items: vscode.TestItem[] = [];
+  collection.forEach(item => {
+    items.push(item);
   });
+  return items;
 }
 
-function worstStepStatus(statuses: string[]): string {
-  for (const s of ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'PENDING', 'SKIPPED', 'PASSED']) {
-    if (statuses.includes(s)) return s;
+/** Leaf (scenario / example row) items at or below `item`. */
+export function leafItems(item: vscode.TestItem): vscode.TestItem[] {
+  const data = testData.get(item);
+  if (data instanceof TestNode && data.isLeaf) {
+    return [item];
   }
-  return statuses[0] ?? 'UNKNOWN';
-}
-
-export class TestFeature {
-  constructor(
-    private readonly featureUri: string,
-    public generation: number
-  ) { }
-
-  async run(item: vscode.TestItem, options: vscode.TestRun, launchCommand?: string): Promise<void> {
-    const cmd = launchCommand ?? vscode.workspace.getConfiguration('qavajs').get<string>('launchCommand') ?? 'npx qavajs run';
-    const command = `${cmd} --paths "${this.featureUri}" --format message`;
-
-    const lineToItem = new Map<number, vscode.TestItem>();
-    const collectItems = (col: vscode.TestItemCollection) => {
-      col.forEach(child => {
-        if (child.range) lineToItem.set(child.range.start.line + 1, child);
-        collectItems(child.children);
-      });
-    };
-    collectItems(item.children);
-
-    return runCucumber(command, options, line => lineToItem.get(line));
-  }
-}
-
-export class TestCase {
-  constructor(
-    private readonly testName: string,
-    private readonly testUri: string,
-    public generation: number
-  ) { }
-
-  getLabel() {
-    return this.testName;
-  }
-
-  get namePattern() {
-    return `^${this.testName
-      .replace(/[-[\]{}()*+?.,^$|\\]/g, '\\$&')
-      .replace(/<[^>]+>/g, '.+?')}$`;
-  }
-
-  async run(item: vscode.TestItem, options: vscode.TestRun, launchCommand?: string): Promise<void> {
-    const cmd = launchCommand ?? vscode.workspace.getConfiguration('qavajs').get<string>('launchCommand') ?? 'npx qavajs run';
-    const command = `${cmd} --paths "${this.testUri}" --name "${this.namePattern}" --format message`;
-    return runCucumber(command, options, () => item);
-  }
+  return gatherTestItems(item.children).flatMap(leafItems);
 }

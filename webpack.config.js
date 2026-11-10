@@ -3,6 +3,12 @@
 'use strict';
 
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
+
+// The language server loads every `<lang>.wasm` grammar on startup and fails to initialize if any
+// is missing, so all of them are copied. web-tree-sitter.wasm itself is emitted by webpack as an
+// asset (it is referenced via `new URL(..., import.meta.url)`).
+const WASM_DIR = path.resolve(__dirname, 'node_modules/@cucumber/language-service/dist');
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -16,6 +22,7 @@ const extensionConfig = {
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, 'dist'),
+    clean: true,
     filename: 'extension.js',
     libraryTarget: 'commonjs2'
   },
@@ -40,6 +47,16 @@ const extensionConfig = {
       }
     ]
   },
+  plugins: [
+    new CopyPlugin({
+      patterns: [{
+        from: '*.wasm',
+        context: WASM_DIR,
+        to: '[name][ext]',
+        globOptions: { ignore: ['**/web-tree-sitter.wasm'] },
+      }],
+    }),
+  ],
   devtool: 'nosources-source-map',
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
