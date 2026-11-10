@@ -16,8 +16,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test-fixtures/project/package-lock.json
       - run: npm ci
-      - run: npm run copy-wasms
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm ci --prefix test-fixtures/project
+      - name: integration tests (VS Code extension host)
+        run: xvfb-run -a npm run test:integration
       - run: npm run vsce
       - name: publish to marketplace
-        run: npx @vscode/vsce publish --pat ${{ secrets.VSCE_PAT }}
+        run: npx @vscode/vsce publish --packagePath *.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
