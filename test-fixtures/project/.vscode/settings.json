@@ -1,0 +1,9 @@
+{
+  "cucumber.features": ["features/**/*.feature"],
+  "cucumber.glue": ["step_definition/*.js"],
+  "qavajs.launchProfiles": [
+    { "name": "Default", "command": "npx qavajs run --config config.js" },
+    { "name": "Smoke", "command": "npx qavajs run --config config.js", "tags": "@smoke" },
+    { "name": "Env", "command": "npx qavajs run --config config.js", "env": { "QAVAJS_FIXTURE": "from-profile" } }
+  ]
+}

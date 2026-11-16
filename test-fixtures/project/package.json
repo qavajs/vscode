@@ -1,0 +1,9 @@
+{
+  "name": "qavajs-vscode-fixture",
+  "private": true,
+  "description": "qavajs project used by the extension's integration tests",
+  "dependencies": {
+    "@cucumber/cucumber": "13.3.0",
+    "@qavajs/core": "2.18.1"
+  }
+}

@@ -1,7 +1,7 @@
-import { CucumberExpressions, ParserAdapter, Suggestion } from '@cucumber/language-service'
+import type { CucumberExpressions, ParserAdapter, Suggestion } from '@cucumber/language-service'
 import { WasmParserAdapter } from '@cucumber/language-service/wasm'
-import { PassThrough } from 'stream'
-import { Connection, TextDocuments } from 'vscode-languageserver'
+import { PassThrough } from 'node:stream'
+import { type Connection, TextDocuments } from 'vscode-languageserver'
 import { createConnection } from 'vscode-languageserver/node'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 

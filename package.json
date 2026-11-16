@@ -2,20 +2,30 @@
   "name": "qavajs",
   "displayName": "qavajs",
   "description": "qavajs test automation framework vscode extension",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.145.0"
   },
   "categories": [
     "Testing"
-  ],
-  "authors": [
-    "Alexander Galichenko"
   ],
   "publisher": "qavajs",
   "icon": "resources/icon.png",
   "license": "MIT",
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:**/*.feature"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Running tests executes workspace code, so it is disabled in untrusted workspaces. Launch commands from workspace settings are ignored until the workspace is trusted.",
+      "restrictedConfigurations": [
+        "qavajs.launchProfiles",
+        "qavajs.launchCommand"
+      ]
+    }
+  },
   "contributes": {
     "languages": [
       {
@@ -33,6 +43,13 @@
         }
       }
     ],
+    "grammars": [
+      {
+        "language": "cucumber",
+        "scopeName": "text.gherkin.feature",
+        "path": "./syntaxes/gherkin-classic.tmLanguage"
+      }
+    ],
     "configuration": {
       "title": "qavajs",
       "displayName": "qavajs",
@@ -40,41 +57,44 @@
         "cucumber.features": {
           "markdownDescription": "The `cucumber.features` setting overrides where the extension \nshould look for `.feature` files. \n\nIf no feature files are found, [autocomplete](#autocomplete) \nwill not work.\n\nDefault value:\n\n```json \n{\n  \"cucumber.features\": [\n    \"features/**/*.feature\"\n  ]\n}\n```",
           "type": "array",
-          "required": false,
           "default": [
             "features/**/*.feature"
-          ]
+          ],
+          "scope": "resource"
         },
         "cucumber.glue": {
           "markdownDescription": "The `cucumber.glue` setting overrides where the extension\nshould look for source code where step definitions and\nparameter types are defined.\n\nIf no glue files are found, [autocomplete](#autocomplete) \nwill not work, and all Gherkin steps will be underlined as \nundefined. [Generate step definition](#generate-step-definition)\nwill not work either.\n\nDefault value:\n\n```json\n {\n  \"cucumber.glue\": [\n    \"node_modules/@qavajs/**/src/*.ts\",\n    \"step_definition/*.js\",\n    \"step_definition/*.ts\"\n  ]\n}\n```",
           "type": "array",
-          "required": false,
           "default": [
             "node_modules/@qavajs/**/src/*.ts",
             "step_definition/*.js",
             "step_definition/*.ts"
-          ]
+          ],
+          "scope": "resource"
         },
         "cucumber.parameterTypes": {
           "markdownDescription": "Override the `cucumber.parameterTypes` setting if your Cucumber Expressions\nare using [Custom Parameter Types](https://github.com/cucumber/cucumber-expressions#custom-parameter-types) that are defined outside your `cucumber.glue` setting.\n\nParameter Types in the `cucumber.glue` globs will be picked up automatically.\n\nDefault value:\n\n```json\n{\n  \"cucumber.parameterTypes\": []\n}\n```\n\nFor example, if you're using the `actor` parameter type from [@cucumber/screenplay](https://github.com/cucumber/screenplay.js#actors) you'll have to declare this in the `parameterTypes` setting:\n\n````json\n{\n  \"cucumber.parameterTypes\": [\n    { \"name\": \"actor\", \"regexp\": \"[A-Z][a-z]+\" }\n  ]\n}\n````",
           "type": "array",
-          "required": false,
-          "default": []
+          "default": [],
+          "scope": "resource"
         },
         "qavajs.launchCommand": {
           "markdownDescription": "command to run qavajs tests. \nDefault value: \"npx qavajs run\"",
           "type": "string",
-          "required": false,
-          "default": "npx qavajs run"
+          "default": "npx qavajs run",
+          "markdownDeprecationMessage": "Use `qavajs.launchProfiles` instead. Still used as the command when `qavajs.launchProfiles` is empty.",
+          "scope": "resource"
         },
         "qavajs.launchProfiles": {
-          "markdownDescription": "Named launch profiles for running tests. Each profile appears as a separate run profile in the Test Explorer. Example:\n\n```json\n{\n  \"qavajs.launchProfiles\": [\n    { \"name\": \"Dev\", \"command\": \"npx qavajs run --config dev.config.js\" },\n    { \"name\": \"CI\", \"command\": \"npx qavajs run --config ci.config.js\" }\n  ]\n}\n```\n\nWhen empty, falls back to `qavajs.launchCommand`.",
+          "markdownDescription": "Named launch profiles for running and debugging tests. Each profile appears as a run profile and a debug profile in the Test Explorer; the first one is the default. Example:\n\n```json\n{\n  \"qavajs.launchProfiles\": [\n    { \"name\": \"Dev\", \"command\": \"npx qavajs run --config dev.config.ts\", \"env\": { \"HEADLESS\": \"false\" } },\n    { \"name\": \"Smoke\", \"command\": \"npx qavajs run --config ci.config.ts\", \"tags\": \"@smoke and not @wip\" }\n  ]\n}\n```\n\n`${workspaceFolder}` and `${env:NAME}` are substituted in `command`, `cwd` and `env`. In a multi-root workspace each folder can define its own profiles; a profile with the same name in a folder overrides the workspace one for tests of that folder.\n\nWhen empty, falls back to `qavajs.launchCommand`.",
           "type": "array",
-          "required": false,
           "default": [],
           "items": {
             "type": "object",
-            "required": ["name", "command"],
+            "required": [
+              "name",
+              "command"
+            ],
             "properties": {
               "name": {
                 "type": "string",
@@ -83,14 +103,33 @@
               "command": {
                 "type": "string",
                 "description": "Command used to launch tests for this profile"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Extra environment variables for the test process"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory, relative to the workspace folder (default: the workspace folder)"
+              },
+              "tags": {
+                "type": "string",
+                "description": "Cucumber tag expression passed as --tags, e.g. \"@smoke and not @wip\""
               }
             }
-          }
+          },
+          "scope": "resource"
         }
       }
     }
   },
-  "repository": "https://github.com/qavajs/vscode.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qavajs/vscode.git"
+  },
   "scripts": {
     "vsce": "vsce package",
     "prevsce": "npm run package",
@@ -98,30 +137,49 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "copy-wasms": "mkdir -p dist && cp node_modules/@cucumber/language-service/dist/*.wasm dist"
+    "typecheck": "tsc -p . --noEmit && tsc -p tsconfig.integration.json --noEmit",
+    "lint": "biome lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pretest:integration": "npm run compile && tsc -p tsconfig.integration.json",
+    "test:integration": "vscode-test"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.6.6",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^25.6.0",
-    "@types/vscode": "^1.100.0",
-    "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.9.1",
-    "glob": "^13.0.6",
-    "ts-loader": "^9.5.7",
-    "typescript": "^6.0.3",
-    "webpack": "^5.106.2",
-    "webpack-cli": "^7.0.2"
+    "@types/node": "^26.6.6",
+    "@types/vscode": "~1.145.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.1.0",
+    "copy-webpack-plugin": "^14.0.0",
+    "ts-loader": "^9.6.2",
+    "typescript": "~6.0",
+    "vitest": "^5.1.0",
+    "webpack": "^5.112.2",
+    "webpack-cli": "^7.3.1"
   },
   "dependencies": {
-    "@cucumber/cucumber-expressions": "^19.0.0",
-    "@cucumber/gherkin": "^39.0.0",
-    "@cucumber/language-server": "^1.7.0",
-    "ts-node": "^10.9.2",
-    "vscode-languageclient": "^9.0.1"
-  }
+    "@cucumber/cucumber-expressions": "^20.1.0",
+    "@cucumber/gherkin": "^42.0.1",
+    "@cucumber/language-server": "2.0.0",
+    "@cucumber/language-service": "2.0.0",
+    "@cucumber/messages": "^34.2.1",
+    "vscode-languageclient": "^11.0.0",
+    "vscode-languageserver": "11.0.0",
+    "vscode-languageserver-textdocument": "1.0.16"
+  },
+  "author": "Alexander Galichenko",
+  "keywords": [
+    "qavajs",
+    "cucumber",
+    "gherkin",
+    "bdd",
+    "test automation",
+    "test explorer"
+  ],
+  "bugs": {
+    "url": "https://github.com/qavajs/vscode/issues"
+  },
+  "homepage": "https://github.com/qavajs/vscode#readme"
 }
